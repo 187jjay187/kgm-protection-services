@@ -65,61 +65,139 @@
     window.addEventListener('resize', function () { if (window.innerWidth >= 900) { setNav(false); } });
   }
 
-  /* ---------- hero: scroll-driven van ---------- */
-  var hero = document.querySelector('.hero');
   var root = document.documentElement;
-  if (hero && root.classList.contains('scrub')) {
-    var stage = hero.querySelector('.hero-stage');
-    var van = hero.querySelector('.hero-van img');
-    var logo = hero.querySelector('.hero-logo');
-    var dashes = hero.querySelector('.hero-dashes');
-    var intro = hero.querySelector('.hero-intro');
-    var cue = hero.querySelector('.hero-cue');
-    var cta = hero.querySelector('.hero-cta');
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+
+  /* ---------- home hero: intro video, then hand off to the live logo ---------- */
+  /* Constants come from assets/video/hero-meta.json (final frame is 1280x720, logo bbox 450x444 centred). */
+  var VID_W = 1280, VID_H = 720, LOGO_H = 444, LOGO_RATIO = 1100 / 1085, SETTLED = 9.54, FADE_MS = 450;
+
+  var initHero = function (hero) {
+    var vid = hero.querySelector('.vhero-video');
+    var logo = hero.querySelector('.vhero-logo');
+    var inner = hero.querySelector('.vhero-cta-in');
+    var skip = hero.querySelector('.vhero-skip');
+    var state = 0;   /* 0 playing, 1 cross-fading, 2 resting layout */
+
+    var layout = function () {
+      var W = hero.clientWidth, H = hero.clientHeight;
+      var contain = W <= 700 || W / H < 1;
+      hero.classList.toggle('fit-contain', contain);
+      /* scale the video is rendered at: object-fit cover vs contain */
+      var sc = contain ? Math.min(W / VID_W, H / VID_H) : Math.max(W / VID_W, H / VID_H);
+      var lh = LOGO_H * sc, lw = lh * LOGO_RATIO;
+      logo.style.width = lw.toFixed(2) + 'px';
+      logo.style.height = lh.toFixed(2) + 'px';
+      logo.style.left = ((W - lw) / 2).toFixed(2) + 'px';
+      logo.style.top = ((H - lh) / 2).toFixed(2) + 'px';
+      /* resting layout: logo + tagline + CTAs stacked and centred; grow small logos, shrink only if it will not fit */
+      var gap = 24, pad = 24, th = inner.offsetHeight;
+      var grow = Math.max(1, Math.min(0.8 * W / lw, 0.3 * H / lh));
+      var k = clamp((H - 2 * pad - gap - th) / lh, 0.3, grow);
+      var top = (H - (lh * k + gap + th)) / 2;
+      hero.style.setProperty('--k', k.toFixed(4));
+      hero.style.setProperty('--dy', (top + lh * k / 2 - H / 2).toFixed(2) + 'px');
+      hero.style.setProperty('--ty', (top + lh * k + gap).toFixed(2) + 'px');
+    };
+    var stopVideo = function () {
+      vid.pause();
+      vid.textContent = '';
+      vid.removeAttribute('src');
+      vid.load();   /* abort any download: the end state is a plain composite on black */
+    };
+    var settleFocus = function () {
+      if (document.activeElement === skip) { hero.querySelector('.vhero-cta .btn').focus({ preventScroll: true }); }
+    };
+    var rest = function () {
+      state = 2;
+      settleFocus();
+      hero.classList.add('is-rest', 'is-text');
+    };
+    var handoff = function () {
+      if (state) { return; }
+      state = 1;
+      layout();
+      hero.classList.add('is-handoff');
+      setTimeout(function () { stopVideo(); hero.classList.add('is-gone'); rest(); }, FADE_MS + 30);
+    };
+    var endNow = function () {
+      if (state === 2) { return; }
+      state = 2;
+      settleFocus();
+      stopVideo();
+      layout();
+      hero.classList.add('no-anim', 'is-handoff', 'is-gone', 'is-rest', 'is-text');
+      void hero.offsetWidth;
+      hero.classList.remove('no-anim');
+    };
+    var tick = function () {
+      if (state) { return; }
+      if (vid.currentTime >= SETTLED) { handoff(); return; }
+      requestAnimationFrame(tick);
+    };
+
+    layout();
+    window.addEventListener('resize', layout);
+    window.addEventListener('orientationchange', layout);
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(layout); }
+    skip.addEventListener('click', endNow);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || window.location.hash || window.scrollY > 8) { endNow(); return; }
+
+    var srcs = vid.querySelectorAll('source');
+    srcs[srcs.length - 1].addEventListener('error', endNow);   /* no source could be played */
+    vid.addEventListener('error', endNow);
+    vid.addEventListener('ended', function () { if (!state) { endNow(); } });
+    var started = vid.play();
+    if (started && started.catch) { started.catch(endNow); }   /* autoplay blocked */
+    setTimeout(function () { if (!state && vid.currentTime === 0) { endNow(); } }, 8000);   /* never started */
+    tick();
+  };
+  var hero = document.querySelector('.vhero');
+  if (hero) { initHero(hero); }
+
+  /* ---------- scroll-driven van (reusable: any .vanrun section) ---------- */
+  var initVanRun = function (sec) {
+    var stage = sec.querySelector('.vanrun-stage');
+    var van = sec.querySelector('.vanrun-van img');
+    var dashes = sec.querySelector('.vanrun-dashes');
+    var line = sec.querySelector('.vanrun-line');
+    var cta = sec.querySelector('.vanrun-cta');
     var DASH = 96, END_P = 0.8;
-    var vw = 0, vanW = 0, x0 = 0, xEnd = 0, logoL = 0, logoW = 0, range = 1, ticking = false;
-    var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+    var vw = 0, vanW = 0, lineL = 0, lineW = 0, range = 1, ticking = false;
 
     var measure = function () {
       vw = window.innerWidth;
       vanW = van.offsetWidth;
-      x0 = (vw >= 768 ? 0.24 : 0.30) * vw - vanW / 2;   /* resting position: van centre at 24vw (30vw on mobile) */
-      xEnd = vw + 16;                                      /* van left edge beyond the right edge */
-      logoW = logo.offsetWidth;
-      logoL = (vw - logoW) / 2;
-      range = Math.max(1, hero.offsetHeight - stage.offsetHeight);
+      lineL = line.getBoundingClientRect().left;   /* the clip does not change the box */
+      lineW = line.offsetWidth;
+      range = Math.max(1, sec.offsetHeight - stage.offsetHeight);
     };
     var update = function () {
       ticking = false;
-      var p = clamp(-hero.getBoundingClientRect().top / range, 0, 1);
+      var p = clamp(-sec.getBoundingClientRect().top / range, 0, 1);
       var t = clamp(p / END_P, 0, 1);
-      var x = x0 + (xEnd - x0) * t;
+      var x = -vanW + (vw + vanW + 16) * t;   /* van runs from fully off-left to fully off-right */
       var bob = t > 0 && t < 1 ? Math.sin(p * Math.PI * 14) * 1.5 : 0;
       van.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + bob.toFixed(2) + 'px,0)';
-      /* logo is revealed up to the van's REAR (left) edge */
-      var shown = clamp(x - logoL, 0, logoW);
-      logo.style.clipPath = 'inset(0 ' + (logoW - shown).toFixed(1) + 'px 0 0)';
+      /* the line is revealed up to the van's REAR (left) edge */
+      line.style.clipPath = 'inset(0 ' + (lineW - clamp(x - lineL, 0, lineW)).toFixed(1) + 'px 0 0)';
       dashes.style.transform = 'translate3d(' + (-((p * 2400) % DASH)).toFixed(1) + 'px,0,0)';
-      var f = clamp(p / 0.3, 0, 1);
-      intro.style.opacity = (1 - f).toFixed(3);
-      intro.style.transform = 'translate3d(0,' + (-f * 32).toFixed(1) + 'px,0)';
-      cue.style.opacity = (1 - f).toFixed(3);
       var c = clamp((p - END_P) / (1 - END_P), 0, 1);
       cta.style.opacity = c.toFixed(3);
       cta.style.transform = 'translate3d(0,' + ((1 - c) * 24).toFixed(1) + 'px,0)';
-      hero.classList.toggle('is-done', c > 0.5);
-      hero.style.setProperty('--p', p.toFixed(4));
+      sec.classList.toggle('is-done', c > 0.5);
     };
     var onScroll = function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
-    var skipIntro = function () { if (window.scrollY > 8) { root.classList.add('no-intro'); } };
     var refresh = function () { measure(); update(); };
 
-    skipIntro();
-    measure(); update();
+    refresh();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', refresh);
-    window.addEventListener('load', function () { skipIntro(); refresh(); });
-    window.addEventListener('pageshow', function (e) { if (e.persisted) { skipIntro(); refresh(); } });
+    window.addEventListener('load', refresh);
+    window.addEventListener('pageshow', function (e) { if (e.persisted) { refresh(); } });
+  };
+  if (root.classList.contains('scrub')) {
+    Array.prototype.forEach.call(document.querySelectorAll('.vanrun'), initVanRun);
   }
 
   /* ---------- contact form ---------- */

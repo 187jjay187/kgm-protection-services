@@ -1,7 +1,7 @@
 /* KGM Protection Services - design tokens first. Every value below traces to a token. */
 :root{
   /* colour: neutral ramp */
-  --c-0:#0A0A0A; --c-1:#141414; --c-2:#1E1E1E; --c-3:#2A2A2A; --c-4:#3A3A3A;
+  --black:#000; --c-0:#0A0A0A; --c-1:#141414; --c-2:#1E1E1E; --c-3:#2A2A2A; --c-4:#3A3A3A;
   --paper:#F4F1EA; --paper-dim:#B9B5AB;
   /* colour: brand accent (sampled from logo-lockup.png: median of gold pixels) */
   --gold:#BF921A; --gold-light:#E5C273; --gold-glow:rgba(191,146,26,.18);
@@ -20,10 +20,10 @@
   /* layout */
   --maxw:1160px; --header-h:64px; --road:clamp(96px,14svh,160px);
   --t-fast:150ms; --dash:96px; --z-header:50; --z-float:60;
-  /* hero van geometry (mobile first; breakpoint 768px overrides) */
-  --van-w:92vw; --van-cx:30vw; --logo-w:clamp(220px,min(40vw,44svh),420px);
+  /* scroll van geometry (mobile first; breakpoint 768px overrides) */
+  --van-w:92vw;
 }
-@media (min-width:768px){:root{--van-w:min(88vw,900px);--van-cx:24vw;--fs-n1:.8rem}}
+@media (min-width:768px){:root{--van-w:min(88vw,900px);--fs-n1:.8rem}}
 
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -61,7 +61,7 @@ a:hover{color:var(--paper)}
 .site-header{position:sticky;top:0;z-index:var(--z-header);background:var(--c-0-a);backdrop-filter:blur(var(--sp-2));border-bottom:var(--bw) solid var(--c-3)}
 .site-header .container{display:flex;align-items:center;justify-content:space-between;height:var(--header-h)}
 .brand{display:flex;align-items:center;gap:var(--sp-3);text-decoration:none;color:var(--paper);font-family:var(--ff-display);font-weight:700;font-size:var(--fs-1);letter-spacing:.06em}
-.brand img{height:var(--sp-8);width:auto}
+.brand img{height:calc(var(--sp-12) - var(--sp-1));width:auto}
 .brand small{display:none;font-family:var(--ff-body);font-size:var(--fs-n1);font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-light);margin-left:var(--sp-1)}
 @media (min-width:480px){.brand small{display:inline}}
 .nav-toggle{display:inline-flex;flex-direction:column;justify-content:center;gap:var(--sp-1);width:var(--sp-12);height:var(--sp-12);padding:var(--sp-3);background:transparent;border:var(--bw) solid var(--c-4);border-radius:var(--radius);cursor:pointer}
@@ -84,42 +84,55 @@ html:not(.js) .nav-toggle{display:none}
   .site-nav a[aria-current="page"]{border-bottom-color:var(--gold)}
 }
 
-/* ============ HERO ============ */
-.hero{position:relative;background:var(--c-0);overflow:clip}
-.hero-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--sp-6);padding:var(--sp-12) var(--sp-4) 0;min-height:calc(100svh - var(--header-h))}
-.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,var(--gold-glow),transparent 60%);pointer-events:none}
-.hero-intro{position:relative;text-align:center;max-width:22ch}
-.hero-intro h1{font-size:var(--fs-3);margin-bottom:var(--sp-3)}
-@media (min-width:768px){.hero-intro{max-width:none}.hero-intro h1{font-size:var(--fs-5)}}
-.hero-tag{font-size:var(--fs-1);color:var(--gold-light);margin:0}
-.hero-center{position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--sp-6);text-align:center}
-.hero-logo{width:var(--logo-w);height:auto}
-.hero-cta{max-width:34rem}
-.hero-cta .lede{margin:0 auto var(--sp-6);font-size:var(--fs-1)}
-.hero-van{position:relative;width:min(70vw,630px);margin-top:auto}
-.hero-van img{width:100%;height:auto}
-.hero-road{position:relative;width:100%;height:0;border-top:var(--bw-2) solid var(--gold)}
-.hero-dashes,.hero-cue{display:none}
+/* ============ HOME HERO: intro video, handed off to the live logo ============ */
+/* Base state = the finished composite (works without JS). The .js rules below arrange the intro. */
+.vhero{position:relative;overflow:hidden;background:var(--black);min-height:calc(100vh - var(--header-h));min-height:calc(100svh - var(--header-h));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-6);padding:var(--sp-8) var(--sp-4)}
+.vhero-video,.vhero-skip{display:none}
+.vhero-logo{width:min(60vw,360px);height:auto}
+.vhero-cta-in{max-width:34rem;text-align:center}
+.vhero-cta .lede{margin:0 auto var(--sp-6)}
+.vhero-cta .btn-row{justify-content:center}
+.js .vhero{display:block;padding:0}
+.js .vhero-video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--black);transition:opacity 450ms ease}
+.js .vhero.fit-contain .vhero-video{object-fit:contain}
+.js .vhero-skip{display:block;position:absolute;right:var(--sp-4);bottom:calc(var(--sp-16) + var(--sp-4));z-index:3;min-height:var(--sp-12);padding:var(--sp-2) var(--sp-4);background:transparent;color:var(--gold-light);font:600 var(--fs-n1)/1 var(--ff-body);letter-spacing:.14em;text-transform:uppercase;border:var(--bw-2) solid var(--gold);border-radius:var(--radius);cursor:pointer;transition:background var(--t-fast)}
+.js .vhero-skip:hover{background:var(--gold-glow)}
+.js .vhero-logo{position:absolute;max-width:none;opacity:0;z-index:1;transition:opacity 450ms ease,transform 850ms cubic-bezier(.22,1,.36,1);will-change:transform,opacity}
+.js .vhero-cta{position:absolute;left:0;right:0;top:var(--ty,50%);z-index:2;padding-inline:var(--sp-4);display:flex;justify-content:center}
+.js .vhero-cta-in{opacity:0;transform:translate3d(0,var(--sp-6),0);pointer-events:none;transition:opacity 600ms ease 650ms,transform 600ms ease 650ms}
+.js .vhero-cta-in:focus-within{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--t-fast);transition-delay:0s}
+.vhero.is-handoff .vhero-logo{opacity:1}
+.vhero.is-handoff .vhero-video{opacity:0}
+.vhero.is-gone .vhero-video{display:none}
+.vhero.is-rest .vhero-logo{transform:translate3d(0,var(--dy,0),0) scale(var(--k,1))}
+.vhero.is-rest .vhero-skip{visibility:hidden;opacity:0}
+.vhero.is-text .vhero-cta-in{opacity:1;transform:none;pointer-events:auto}
+.vhero.no-anim *{transition:none!important}
 
-/* scroll-driven mode (JS adds .scrub to <html> unless prefers-reduced-motion) */
-.scrub .hero{margin-top:calc(var(--header-h) * -1)}
-.scrub .hero-stage{position:sticky;top:0;display:block;height:100svh;min-height:0;padding:0}
-.scrub .hero-intro{position:absolute;left:0;right:0;top:calc(var(--header-h) + 8svh);margin-inline:auto;padding-inline:var(--sp-4);will-change:transform,opacity;z-index:3}
-.scrub .hero-center{position:absolute;left:0;right:0;top:calc(var(--header-h) + var(--sp-4));bottom:var(--road);justify-content:center;gap:var(--sp-4);z-index:1}
-.scrub .hero-logo{clip-path:inset(0 100% 0 0)}
-.scrub .hero-cta{opacity:0;transform:translate3d(0,var(--sp-6),0);pointer-events:none;padding-inline:var(--sp-4);will-change:transform,opacity}
-.scrub .hero.is-done .hero-cta,.scrub .hero-cta:focus-within{pointer-events:auto}
-.scrub .hero-cta:focus-within{opacity:1!important;transform:none!important}
-.scrub .hero-cta .btn-row{justify-content:center}
-.scrub .hero-road{position:absolute;left:0;right:0;bottom:0;height:var(--road);background:var(--c-1);z-index:0}
-.scrub .hero-dashes{display:block;position:absolute;left:0;bottom:calc(var(--road) - var(--sp-8));width:calc(100% + var(--dash));height:var(--sp-1);background:repeating-linear-gradient(90deg,var(--gold) 0 var(--sp-8),transparent var(--sp-8) var(--dash));opacity:.55;will-change:transform;z-index:1}
-.scrub .hero-van{position:absolute;left:0;bottom:calc(var(--road) - var(--bw));width:var(--van-w);margin:0;z-index:2;animation:van-in 1.6s cubic-bezier(.16,1,.3,1) both}
-.scrub .hero-van img{transform:translate3d(calc(var(--van-cx) - var(--van-w) / 2),0,0);will-change:transform}
-.scrub.no-intro .hero-van{animation:none}
-.scrub .hero-cue{display:flex;position:absolute;left:0;right:0;bottom:var(--sp-3);flex-direction:column;align-items:center;gap:var(--sp-1);font-size:var(--fs-n1);letter-spacing:.2em;text-transform:uppercase;color:var(--paper-dim);z-index:3;will-change:opacity}
-.hero-cue i{display:block;width:var(--bw-2);height:var(--sp-6);background:linear-gradient(var(--gold),transparent);animation:cue 1.6s ease-in-out infinite}
-@keyframes van-in{from{transform:translate3d(-110vw,0,0)}to{transform:translate3d(0,0,0)}}
-@keyframes cue{0%{transform:translate3d(0,calc(var(--sp-2) * -1),0);opacity:0}50%{opacity:1}100%{transform:translate3d(0,var(--sp-2),0);opacity:0}}
+/* ============ SCROLL VAN (reusable: .vanrun section) ============ */
+/* Base state = static composition (reduced motion / no JS). html.scrub turns on the pinned scroll mode. */
+.vanrun{position:relative;background:var(--c-0);overflow:clip;border-block:var(--bw) solid var(--c-3)}
+.vanrun-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--sp-6);padding:var(--sp-16) var(--sp-4) 0}
+.vanrun-title{margin:0;text-align:center}
+.vanrun-claim{text-align:center}
+.vanrun-line{display:table;margin:0 auto var(--sp-6);font-family:var(--ff-display);font-weight:700;font-size:var(--fs-3);line-height:var(--lh-head);color:var(--gold-light)}
+@media (min-width:768px){.vanrun-line{font-size:var(--fs-5)}}
+.vanrun-van{position:relative;width:var(--van-w);max-width:100%}
+.vanrun-van img{width:100%;height:auto}
+.vanrun-road{width:100%;height:0;border-top:var(--bw-2) solid var(--gold)}
+.vanrun-dashes{display:none}
+.scrub .vanrun{height:300vh}
+.scrub .vanrun-stage{position:sticky;top:var(--header-h);display:block;height:calc(100vh - var(--header-h));height:calc(100svh - var(--header-h));padding:0}
+.scrub .vanrun-title{position:absolute;left:0;right:0;top:var(--sp-12);padding-inline:var(--sp-4)}
+.scrub .vanrun-claim{position:absolute;left:0;right:0;bottom:calc(var(--road) + var(--sp-4));padding-inline:var(--sp-4);z-index:1}
+.scrub .vanrun-line{clip-path:inset(0 100% 0 0)}
+.scrub .vanrun-cta{opacity:0;transform:translate3d(0,var(--sp-6),0);pointer-events:none;will-change:transform,opacity}
+.scrub .vanrun.is-done .vanrun-cta{pointer-events:auto}
+.scrub .vanrun-cta:focus-within{opacity:1!important;transform:none!important;pointer-events:auto}
+.scrub .vanrun-road{position:absolute;left:0;right:0;bottom:0;height:var(--road);background:var(--c-1);z-index:0}
+.scrub .vanrun-dashes{display:block;position:absolute;left:0;bottom:calc(var(--road) - var(--sp-8));width:calc(100% + var(--dash));height:var(--sp-1);background:repeating-linear-gradient(90deg,var(--gold) 0 var(--sp-8),transparent var(--sp-8) var(--dash));opacity:.55;will-change:transform;z-index:1}
+.scrub .vanrun-van{position:absolute;left:0;bottom:calc(var(--road) - var(--bw));z-index:2}
+.scrub .vanrun-van img{transform:translate3d(-110vw,0,0);will-change:transform}
 
 /* ribbon */
 .ribbon{overflow:hidden;background:var(--c-1);border-block:var(--bw) solid var(--c-3);padding-block:var(--sp-4)}
@@ -231,7 +244,7 @@ a.card:hover{background:var(--c-2);border-color:var(--gold);color:var(--paper)}
 .nf{min-height:70svh;display:grid;place-items:center;text-align:center;padding:var(--sp-16) var(--sp-4)}
 .nf img{width:var(--sp-24);margin:0 auto var(--sp-6)}
 
-/* reduced motion: static composed hero, no marquee/cue animation (JS also skips scrubbing and intro) */
+/* reduced motion: no transitions/marquee (JS also skips the intro video and the scroll van) */
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
@@ -239,4 +252,3 @@ a.card:hover{background:var(--c-2);border-color:var(--gold);color:var(--paper)}
   .ribbon-track{width:auto;flex-wrap:wrap;justify-content:center}
   .ribbon ul[aria-hidden="true"]{display:none}
 }
-html:not(.scrub) .hero{height:auto!important}
