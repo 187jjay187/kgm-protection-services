@@ -68,89 +68,150 @@
   var root = document.documentElement;
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
 
-  /* ---------- home hero: intro video, then hand off to the live logo ---------- */
-  /* Constants come from assets/video/hero-meta.json (final frame is 1280x720, logo bbox 450x444 centred). */
-  var VID_W = 1280, VID_H = 720, LOGO_H = 444, LOGO_RATIO = 1100 / 1085, SETTLED = 9.54, FADE_MS = 450;
+  /* ---------- home hero: intro video, then hand off to the live logo + slogan ---------- */
+  /* Constants come from assets/video/hero-meta-v2.json. Both clips are 11s; the logo is settled by 9.54s.
+     bbox = logo height in the final frame; its centre is the frame centre. 'p' = 540x960 portrait, 'l' = 1280x720 landscape (and its 480p twin). */
+  var GEO = { p: { w: 540, h: 960, lh: 336 }, l: { w: 1280, h: 720, lh: 444 } };
+  var LOGO_RATIO = 1100 / 1085, SETTLED = 9.54, FADE_MS = 450, STALL_MS = 20000, KMIN = 0.55;
 
   var initHero = function (hero) {
     var vid = hero.querySelector('.vhero-video');
+    var stage = hero.querySelector('.vhero-stage');
     var logo = hero.querySelector('.vhero-logo');
     var inner = hero.querySelector('.vhero-cta-in');
     var skip = hero.querySelector('.vhero-skip');
-    var state = 0;   /* 0 playing, 1 cross-fading, 2 resting layout */
+    var geo = vid.dataset.mode === 'p' ? GEO.p : GEO.l;
+    var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var SAVE = !!(navigator.connection && navigator.connection.saveData);
+    var state = 0;   /* 0 waiting/playing, 1 cross-fading, 2 end state */
+    var playing = false, ticking = false, retried = false, lastProg = Date.now();
+    var info = { play: '-', path: '-' };
+    var has = function (c) { return hero.classList.contains(c); };
 
     var layout = function () {
-      var W = hero.clientWidth, H = hero.clientHeight;
-      var contain = W <= 700 || W / H < 1;
-      hero.classList.toggle('fit-contain', contain);
-      /* scale the video is rendered at: object-fit cover vs contain */
-      var sc = contain ? Math.min(W / VID_W, H / VID_H) : Math.max(W / VID_W, H / VID_H);
-      var lh = LOGO_H * sc, lw = lh * LOGO_RATIO;
+      var W = stage.clientWidth, H = stage.clientHeight;
+      var sc = Math.max(W / geo.w, H / geo.h);   /* object-fit: cover for both clips */
+      var lh = geo.lh * sc, lw = lh * LOGO_RATIO;
       logo.style.width = lw.toFixed(2) + 'px';
       logo.style.height = lh.toFixed(2) + 'px';
       logo.style.left = ((W - lw) / 2).toFixed(2) + 'px';
       logo.style.top = ((H - lh) / 2).toFixed(2) + 'px';
-      /* resting layout: logo + tagline + CTAs stacked and centred; grow small logos, shrink only if it will not fit */
-      var gap = 24, pad = 24, th = inner.offsetHeight;
-      var grow = Math.max(1, Math.min(0.8 * W / lw, 0.3 * H / lh));
-      var k = clamp((H - 2 * pad - gap - th) / lh, 0.3, grow);
-      var top = (H - (lh * k + gap + th)) / 2;
+      /* resting layout: the stage (last frame + logo) moves/shrinks as one so the frame's own logo never ghosts;
+         the text block sits under it. Short screens: logo shrinks to KMIN, then the hero grows instead. */
+      var gap = 20, pad = 16, th = inner.offsetHeight;
+      var k = clamp((H - 2 * pad - gap - th) / lh, KMIN, 1);
+      var total = lh * k + gap + th;
+      var top = Math.max(pad, (H - total) / 2);
+      hero.style.minHeight = top + total + pad > H ? (top + total + pad).toFixed(0) + 'px' : '';
       hero.style.setProperty('--k', k.toFixed(4));
       hero.style.setProperty('--dy', (top + lh * k / 2 - H / 2).toFixed(2) + 'px');
       hero.style.setProperty('--ty', (top + lh * k + gap).toFixed(2) + 'px');
     };
-    var stopVideo = function () {
-      vid.pause();
-      vid.textContent = '';
-      vid.removeAttribute('src');
-      vid.load();   /* abort any download: the end state is a plain composite on black */
+    var debug = null;
+    var draw = function () {
+      if (!debug) { return; }
+      debug.textContent = ['source: ' + (vid.currentSrc || '-').split('/').pop(), 'mode: ' + vid.dataset.mode + ' ' + (innerHeight >= innerWidth ? 'portrait' : 'landscape') + ' ' + innerWidth + 'x' + innerHeight,
+        'saveData: ' + SAVE, 'reducedMotion: ' + RM, 'play(): ' + info.play, 'readyState: ' + vid.readyState, 'currentTime: ' + vid.currentTime.toFixed(2), 'endPath: ' + info.path].join('\n');
     };
     var settleFocus = function () {
       if (document.activeElement === skip) { hero.querySelector('.vhero-cta .btn').focus({ preventScroll: true }); }
     };
-    var rest = function () {
-      state = 2;
-      settleFocus();
-      hero.classList.add('is-rest', 'is-text');
-    };
-    var handoff = function () {
-      if (state) { return; }
-      state = 1;
-      layout();
-      hero.classList.add('is-handoff');
-      setTimeout(function () { stopVideo(); hero.classList.add('is-gone'); rest(); }, FADE_MS + 30);
-    };
-    var endNow = function () {
+    var endNow = function (path) {
       if (state === 2) { return; }
-      state = 2;
+      state = 2; info.path = path; draw();
       settleFocus();
-      stopVideo();
+      vid.pause();
       layout();
+      hero.classList.remove('is-prompt', 'is-loading');
       hero.classList.add('no-anim', 'is-handoff', 'is-gone', 'is-rest', 'is-text');
       void hero.offsetWidth;
       hero.classList.remove('no-anim');
     };
-    var tick = function () {
+    var handoff = function () {
       if (state) { return; }
-      if (vid.currentTime >= SETTLED) { handoff(); return; }
+      state = 1; info.path = 'handoff'; layout();
+      hero.classList.add('is-handoff');
+      setTimeout(function () {
+        if (state !== 1) { return; }
+        state = 2; vid.pause(); settleFocus();
+        hero.classList.add('is-gone', 'is-rest', 'is-text');
+      }, FADE_MS + 30);
+    };
+    var tick = function () {
+      if (state) { ticking = false; return; }
+      if (vid.currentTime >= SETTLED) { ticking = false; handoff(); return; }
       requestAnimationFrame(tick);
     };
+    var begin = function () {
+      if (vid.dataset.d) {   /* sources were parked (reduced motion / data saver): restore them now */
+        delete vid.dataset.d;
+        Array.prototype.forEach.call(vid.querySelectorAll('source'), function (s) { s.src = s.dataset.src; });
+        vid.load();
+      }
+      hero.classList.remove('is-prompt', 'can-replay');
+      lastProg = Date.now();
+      var p = vid.play();
+      if (p && p.then) {
+        p.then(function () { info.play = 'resolved'; }, function (e) { info.play = 'rejected ' + e.name; if (!state) { prompt(); retryOnGesture(); } });
+      }
+      if (!ticking) { ticking = true; tick(); }
+    };
+    var prompt = function () { if (!state) { hero.classList.remove('is-loading'); hero.classList.add('is-prompt'); } };
+    var retryOnGesture = function () {
+      if (retried) { return; }
+      retried = true;
+      var go = function () {
+        ['touchstart', 'click'].forEach(function (t) { hero.removeEventListener(t, go); });
+        window.removeEventListener('scroll', go);
+        if (state || !has('is-prompt')) { return; }
+        var p = vid.play();
+        if (p && p.then) { p.then(function () { info.play = 'resolved (retry)'; hero.classList.remove('is-prompt'); lastProg = Date.now(); if (!ticking) { ticking = true; tick(); } }, function () {}); }
+      };
+      ['touchstart', 'click'].forEach(function (t) { hero.addEventListener(t, go, { passive: true }); });
+      window.addEventListener('scroll', go, { passive: true });
+    };
+    var replay = function () {   /* Play button / reduced-motion "Play intro": run the whole intro again */
+      state = 0; playing = false;
+      hero.classList.add('no-anim');
+      hero.classList.remove('is-handoff', 'is-gone', 'is-rest', 'is-text');
+      void hero.offsetWidth;
+      hero.classList.remove('no-anim');
+      vid.preload = 'auto';
+      try { vid.currentTime = 0; } catch (e) { /* not seekable yet */ }
+      begin();
+    };
 
+    if (/[?&]debughero=1/.test(window.location.search)) {
+      debug = document.createElement('pre');
+      debug.className = 'vhero-debug';
+      document.body.appendChild(debug);
+      setInterval(draw, 400);
+    }
     layout();
     window.addEventListener('resize', layout);
     window.addEventListener('orientationchange', layout);
     if (document.fonts && document.fonts.ready) { document.fonts.ready.then(layout); }
-    skip.addEventListener('click', endNow);
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches || window.location.hash || window.scrollY > 8) { endNow(); return; }
-
+    skip.addEventListener('click', function () { endNow('skip'); });
+    hero.querySelector('.vhero-play').addEventListener('click', replay);
+    hero.querySelector('.vhero-replay').addEventListener('click', replay);
+    ['timeupdate', 'progress', 'loadeddata', 'canplay', 'playing'].forEach(function (t) { vid.addEventListener(t, function () { lastProg = Date.now(); }); });
+    vid.addEventListener('playing', function () { playing = true; hero.classList.remove('is-loading'); draw(); });
+    ['waiting', 'stalled'].forEach(function (t) { vid.addEventListener(t, function () { if (!state && !has('is-prompt')) { hero.classList.add('is-loading'); } }); });
+    vid.addEventListener('error', function () { endNow('error'); });
     var srcs = vid.querySelectorAll('source');
-    srcs[srcs.length - 1].addEventListener('error', endNow);   /* no source could be played */
-    vid.addEventListener('error', endNow);
-    vid.addEventListener('ended', function () { if (!state) { endNow(); } });
-    var started = vid.play();
-    if (started && started.catch) { started.catch(endNow); }   /* autoplay blocked */
-    setTimeout(function () { if (!state && vid.currentTime === 0) { endNow(); } }, 8000);   /* never started */
-    tick();
+    srcs[srcs.length - 1].addEventListener('error', function () { endNow('error'); });   /* no source could be played */
+    vid.addEventListener('ended', function () { endNow('ended'); });
+    /* a slow network is not a failure: only give up after STALL_MS with no progress at all */
+    setInterval(function () { if (!state && !has('is-prompt') && Date.now() - lastProg > STALL_MS) { endNow('stalled-20s'); } }, 1000);
+
+    if (RM) { endNow('reduced-motion'); hero.classList.add('can-replay'); return; }
+    if (window.location.hash || window.scrollY > 8) { endNow('hash-or-scrolled'); return; }
+    if (SAVE) { info.path = 'save-data'; info.play = 'not called'; prompt(); return; }
+    begin();
+    setTimeout(function () {   /* 2.5s in and still not moving: autoplay refused silently, or just slow */
+      if (state || playing) { return; }
+      if (vid.paused) { info.play += ' (still paused)'; prompt(); retryOnGesture(); } else { hero.classList.add('is-loading'); }
+    }, 2500);
   };
   var hero = document.querySelector('.vhero');
   if (hero) { initHero(hero); }

@@ -84,30 +84,46 @@ html:not(.js) .nav-toggle{display:none}
   .site-nav a[aria-current="page"]{border-bottom-color:var(--gold)}
 }
 
-/* ============ HOME HERO: intro video, handed off to the live logo ============ */
-/* Base state = the finished composite (works without JS). The .js rules below arrange the intro. */
+/* ============ HOME HERO: intro video, last frame stays as the backdrop, live logo + slogan on top ============ */
+/* Base state = finished composite (works without JS). The .js rules below arrange the intro. */
 .vhero{position:relative;overflow:hidden;background:var(--black);min-height:calc(100vh - var(--header-h));min-height:calc(100svh - var(--header-h));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-6);padding:var(--sp-8) var(--sp-4)}
-.vhero-video,.vhero-skip{display:none}
-.vhero-logo{width:min(60vw,360px);height:auto}
-.vhero-cta-in{max-width:34rem;text-align:center}
-.vhero-cta .lede{margin:0 auto var(--sp-6)}
+.vhero-stage{display:contents}
+.vhero-last{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.3}
+.vhero-video,.vhero-skip,.vhero-play,.vhero-replay,.vhero-load,.vhero-shade{display:none}
+.vhero-logo{position:relative;width:min(60vw,360px);height:auto}
+.vhero-cta{position:relative}
+.vhero-cta-in{max-width:40rem;text-align:center}
+.vhero-slogan{margin:0 0 var(--sp-3);font-family:var(--ff-display);font-weight:700;font-size:clamp(18px,1.2rem + 1vw,30px);line-height:var(--lh-head);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-light)}
+.vhero-cta .lede{margin:0 auto var(--sp-4);font-size:clamp(1rem,.9rem + .5vw,1.25rem)}
 .vhero-cta .btn-row{justify-content:center}
 .js .vhero{display:block;padding:0}
-.js .vhero-video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--black);transition:opacity 450ms ease}
-.js .vhero.fit-contain .vhero-video{object-fit:contain}
+.js .vhero-stage{display:block;position:absolute;left:0;top:0;width:100%;height:calc(100vh - var(--header-h));height:calc(100svh - var(--header-h));overflow:hidden;transition:transform 850ms cubic-bezier(.22,1,.36,1);will-change:transform}
+.js .vhero-last{opacity:1;z-index:0}
+.js .vhero-video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--black);z-index:1;transition:opacity 450ms ease}
+.js .vhero-logo{position:absolute;max-width:none;opacity:0;z-index:2;transition:opacity 450ms ease}
 .js .vhero-skip{display:block;position:absolute;right:var(--sp-4);bottom:calc(var(--sp-16) + var(--sp-4));z-index:3;min-height:var(--sp-12);padding:var(--sp-2) var(--sp-4);background:transparent;color:var(--gold-light);font:600 var(--fs-n1)/1 var(--ff-body);letter-spacing:.14em;text-transform:uppercase;border:var(--bw-2) solid var(--gold);border-radius:var(--radius);cursor:pointer;transition:background var(--t-fast)}
 .js .vhero-skip:hover{background:var(--gold-glow)}
-.js .vhero-logo{position:absolute;max-width:none;opacity:0;z-index:1;transition:opacity 450ms ease,transform 850ms cubic-bezier(.22,1,.36,1);will-change:transform,opacity}
-.js .vhero-cta{position:absolute;left:0;right:0;top:var(--ty,50%);z-index:2;padding-inline:var(--sp-4);display:flex;justify-content:center}
+.js .vhero-play{position:absolute;left:50%;top:50%;z-index:3;width:calc(var(--sp-24));height:calc(var(--sp-24));margin:calc(var(--sp-12) * -1) 0 0 calc(var(--sp-12) * -1);padding:0;background:rgba(0,0,0,.55);border:var(--focus-w) solid var(--gold);border-radius:50%;cursor:pointer}
+.vhero-play svg{width:var(--sp-12);height:var(--sp-12);margin:auto;fill:var(--gold-light);max-width:none}
+.js .vhero.is-prompt .vhero-play{display:grid;place-items:center}
+.js .vhero-load{display:block;position:absolute;left:0;right:0;bottom:0;height:var(--bw-2);overflow:hidden;opacity:0;z-index:3;transition:opacity 200ms}
+.vhero-load::after{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:shimmer 1.2s linear infinite}
+.vhero.is-loading .vhero-load{opacity:1}
+@keyframes shimmer{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(250%,0,0)}}
+.js .vhero.can-replay .vhero-replay{display:block;position:absolute;top:var(--sp-2);right:var(--sp-2);z-index:3;min-height:var(--sp-12);padding:var(--sp-3);background:none;border:0;color:var(--gold-light);font:600 var(--fs-n1)/1 var(--ff-body);letter-spacing:.14em;text-transform:uppercase;text-decoration:underline;text-underline-offset:var(--sp-1);cursor:pointer}
+.js .vhero-shade{display:block;position:absolute;left:0;right:0;top:calc(var(--ty,50%) - var(--sp-12));bottom:0;z-index:1;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.78) 40%,rgba(0,0,0,.9));opacity:0;pointer-events:none;transition:opacity 600ms ease 650ms}
+.js .vhero-cta{pointer-events:none;position:absolute;left:0;right:0;top:var(--ty,50%);z-index:2;padding-inline:var(--sp-4);display:flex;justify-content:center}
 .js .vhero-cta-in{opacity:0;transform:translate3d(0,var(--sp-6),0);pointer-events:none;transition:opacity 600ms ease 650ms,transform 600ms ease 650ms}
 .js .vhero-cta-in:focus-within{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--t-fast);transition-delay:0s}
 .vhero.is-handoff .vhero-logo{opacity:1}
 .vhero.is-handoff .vhero-video{opacity:0}
 .vhero.is-gone .vhero-video{display:none}
-.vhero.is-rest .vhero-logo{transform:translate3d(0,var(--dy,0),0) scale(var(--k,1))}
+.vhero.is-rest .vhero-stage{transform:translate3d(0,var(--dy,0),0) scale(var(--k,1))}
 .vhero.is-rest .vhero-skip{visibility:hidden;opacity:0}
 .vhero.is-text .vhero-cta-in{opacity:1;transform:none;pointer-events:auto}
+.vhero.is-text .vhero-shade{opacity:1}
 .vhero.no-anim *{transition:none!important}
+.vhero-debug{position:fixed;left:var(--sp-2);top:calc(var(--header-h) + var(--sp-2));z-index:99;margin:0;padding:var(--sp-2);max-width:90vw;background:rgba(0,0,0,.88);color:var(--paper);border:var(--bw) solid var(--gold);font:12px/1.4 monospace;white-space:pre-wrap;pointer-events:none}
 
 /* ============ SCROLL VAN (reusable: .vanrun section) ============ */
 /* Base state = static composition (reduced motion / no JS). html.scrub turns on the pinned scroll mode. */
