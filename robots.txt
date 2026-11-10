@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kgm-protection-services.vercel.app/sitemap.xml
