@@ -1,0 +1,35 @@
+{
+ "source": "KGM_Protection_Services_vehical3.mp4 (Gemini/Veo), cleaned + real-logo sticker peel",
+ "landscape": {
+  "frames": 212,
+  "fps": 24,
+  "settle_frame": 193,
+  "settle_time_s": 8.041666666666666,
+  "peel_start": 160,
+  "logo_bbox_px": {
+   "x": 414.9308776855469,
+   "y": 138.0,
+   "w": 450.13824884792626,
+   "h": 444.0
+  },
+  "width": 1280,
+  "height": 720,
+  "duration": 8.833333333333334
+ },
+ "portrait": {
+  "frames": 212,
+  "fps": 24,
+  "settle_frame": 193,
+  "settle_time_s": 8.041666666666666,
+  "peel_start": 160,
+  "logo_bbox_px": {
+   "x": 99.67742156982422,
+   "y": 312.0,
+   "w": 340.64516129032256,
+   "h": 336.0
+  },
+  "width": 540,
+  "height": 960,
+  "duration": 8.833333333333334
+ }
+}

@@ -69,10 +69,10 @@
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
 
   /* ---------- home hero: intro video, then hand off to the live logo + slogan ---------- */
-  /* Constants come from assets/video/hero-meta-v2.json. Both clips are 11s; the logo is settled by 9.54s.
+  /* Constants come from assets/video/hero-meta-v3.json. Both clips are 8.83s; the logo is settled by 8.04s (frame 193).
      bbox = logo height in the final frame; its centre is the frame centre. 'p' = 540x960 portrait, 'l' = 1280x720 landscape (and its 480p twin). */
   var GEO = { p: { w: 540, h: 960, lh: 336 }, l: { w: 1280, h: 720, lh: 444 } };
-  var LOGO_RATIO = 1100 / 1085, SETTLED = 9.54, FADE_MS = 450, STALL_MS = 20000, KMIN = 0.55;
+  var LOGO_RATIO = 1100 / 1085, SETTLED = 8.04, FADE_MS = 450, STALL_MS = 20000, KMIN = 0.55;
 
   var initHero = function (hero) {
     var vid = hero.querySelector('.vhero-video');
