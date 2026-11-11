@@ -69,10 +69,10 @@
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
 
   /* ---------- home hero: intro video, then hand off to the live logo + slogan ---------- */
-  /* Constants come from assets/video/hero-meta-v4.json. Both clips are 8.92s; the logo is settled by 7.58s (frame 182).
+  /* Constants come from assets/video/hero-meta-v5.json. Both clips are 9.0s; the logo is settled by 8.54s (frame 205).
      bbox = logo height in the final frame; its centre is the frame centre. 'p' = 540x960 portrait, 'l' = 1280x720 landscape (and its 480p twin). */
   var GEO = { p: { w: 540, h: 960, lh: 336 }, l: { w: 1280, h: 720, lh: 444 } };
-  var LOGO_RATIO = 1100 / 1085, SETTLED = 7.58, FADE_MS = 450, STALL_MS = 20000, KMIN = 0.55;
+  var LOGO_RATIO = 1100 / 1085, SETTLED = 8.54, FADE_MS = 450, STALL_MS = 20000, KMIN = 0.55;
 
   var initHero = function (hero) {
     var vid = hero.querySelector('.vhero-video');
@@ -200,7 +200,7 @@
     vid.addEventListener('error', function () { endNow('error'); });
     var srcs = vid.querySelectorAll('source');
     srcs[srcs.length - 1].addEventListener('error', function () { endNow('error'); });   /* no source could be played */
-    vid.addEventListener('ended', function () { endNow('ended'); });
+    vid.addEventListener('ended', function () { if (state !== 1) { endNow('ended'); } });   /* a running handoff finishes on its own (keeps the text stagger) */
     /* a slow network is not a failure: only give up after STALL_MS with no progress at all */
     setInterval(function () { if (!state && !has('is-prompt') && Date.now() - lastProg > STALL_MS) { endNow('stalled-20s'); } }, 1000);
 

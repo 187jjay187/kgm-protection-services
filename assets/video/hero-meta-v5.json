@@ -1,0 +1,23 @@
+{
+ "source": "KGM_Security_gemini_hero_4.mp4 (Gemini, real logo on door); src 25-240; logo pops off at src 200, parts restack into lockup",
+ "landscape": {
+  "frames": 216,
+  "fps": 24,
+  "settle_frame": 205,
+  "settle_time_s": 8.541666666666666,
+  "peel_start_s": 7.291666666666667,
+  "width": 1280,
+  "height": 720,
+  "logo_h": 444.0
+ },
+ "portrait": {
+  "frames": 216,
+  "fps": 24,
+  "settle_frame": 205,
+  "settle_time_s": 8.541666666666666,
+  "peel_start_s": 7.291666666666667,
+  "width": 540,
+  "height": 960,
+  "logo_h": 336.0
+ }
+}
