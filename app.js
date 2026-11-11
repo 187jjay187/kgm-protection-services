@@ -69,9 +69,9 @@
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
 
   /* ---------- home hero: intro video, then hand off to the live logo + slogan ---------- */
-  /* Constants come from assets/video/hero-meta-v5.json. Both clips are 9.0s; the logo is settled by 8.54s (frame 205).
+  /* Constants come from assets/video/hero-meta-v6.json. Both clips are 9.0s; the logo is settled by 8.54s (frame 205).
      bbox = logo height in the final frame; its centre is the frame centre. 'p' = 540x960 portrait, 'l' = 1280x720 landscape (and its 480p twin). */
-  var GEO = { p: { w: 540, h: 960, lh: 336 }, l: { w: 1280, h: 720, lh: 444 } };
+  var GEO = { p: { w: 540, h: 960, lh: 236 }, l: { w: 1280, h: 720, lh: 330 } };
   var LOGO_RATIO = 1100 / 1085, SETTLED = 8.54, FADE_MS = 450, STALL_MS = 20000, KMIN = 0.55;
 
   var initHero = function (hero) {
@@ -98,7 +98,7 @@
       logo.style.top = ((H - lh) / 2).toFixed(2) + 'px';
       /* resting layout: the stage (last frame + logo) moves/shrinks as one so the frame's own logo never ghosts;
          the text block sits under it. Short screens: logo shrinks to KMIN, then the hero grows instead. */
-      var gap = 20, pad = 16, th = inner.offsetHeight;
+      var gap = 14, pad = 16, th = inner.offsetHeight;
       var k = clamp((H - 2 * pad - gap - th) / lh, KMIN, 1);
       var total = lh * k + gap + th;
       var top = Math.max(pad, (H - total) / 2);

@@ -93,8 +93,8 @@ html:not(.js) .nav-toggle{display:none}
 .vhero-logo{position:relative;width:min(60vw,360px);height:auto}
 .vhero-cta{position:relative}
 .vhero-cta-in{max-width:40rem;text-align:center}
-.vhero-slogan{margin:0 0 var(--sp-3);font-family:var(--ff-display);font-weight:700;font-size:clamp(18px,1.2rem + 1vw,30px);line-height:var(--lh-head);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-light)}
-.vhero-cta .lede{margin:0 auto var(--sp-4);font-size:clamp(1rem,.9rem + .5vw,1.25rem)}
+.vhero-slogan{margin:0 0 var(--sp-2);font-family:var(--ff-display);font-weight:700;font-size:clamp(14px,.75rem + .7vw,22px);line-height:var(--lh-head);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-light)}
+.vhero-cta .lede{margin:0 auto var(--sp-4);max-width:32rem;font-size:clamp(.875rem,.8rem + .3vw,1.05rem)}.vhero-cta .btn-row{gap:var(--sp-2)}.vhero-cta .btn{padding:.65rem 1.2rem;font-size:.9rem;min-height:44px}@media (max-width:479px){.vhero-cta-in{max-width:22rem}.vhero-cta .btn-row{flex-wrap:nowrap}.vhero-cta .btn{padding:.6rem .85rem;font-size:.82rem;white-space:nowrap}.vhero-slogan{letter-spacing:.08em}}
 .vhero-cta .btn-row{justify-content:center}
 .js .vhero{display:block;padding:0}
 .js .vhero-stage{display:block;position:absolute;left:0;top:0;width:100%;height:calc(100vh - var(--header-h));height:calc(100svh - var(--header-h));overflow:hidden;transition:transform 850ms cubic-bezier(.22,1,.36,1);will-change:transform}
