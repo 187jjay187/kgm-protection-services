@@ -1,0 +1,23 @@
+{
+ "source": "KGM_Protection_Services_vehical4.mp4 (Veo); Gemini logo removed with clean-door plate + FSR fill; real kgm_van_logo parts peel and rearrange into lockup",
+ "landscape": {
+  "frames": 214,
+  "fps": 24,
+  "settle_frame": 182,
+  "settle_time_s": 7.583333333333333,
+  "peel_start_s": 6.208333333333333,
+  "width": 1280,
+  "height": 720,
+  "logo_h": 444.0
+ },
+ "portrait": {
+  "frames": 214,
+  "fps": 24,
+  "settle_frame": 182,
+  "settle_time_s": 7.583333333333333,
+  "peel_start_s": 6.208333333333333,
+  "width": 540,
+  "height": 960,
+  "logo_h": 336.0
+ }
+}
