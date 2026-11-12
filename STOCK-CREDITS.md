@@ -21,3 +21,10 @@ Preview placeholders only; swap for KGM's own photos and footage when supplied. 
 - g-7.jpeg — "A professional chauffeur assists a businesswoman exiting a luxury car in front of a modern building." by Pavel Danilyuk on Pexels (https://www.pexels.com/photo/woman-in-black-blazer-standing-beside-black-car-8425035/) via ZipWP Images
 - g-8.jpeg — "A policewoman with braided hair using a flashlight to investigate an urban crime scene at night." by cottonbro studio on Pexels (https://www.pexels.com/photo/policewoman-with-flashlight-at-the-crime-scene-10481326/) via ZipWP Images
 - reel-2.jpeg — "Large crowd gathered at an event with visible Brandenburg Gate in Berlin." by Warren Noronha on Pexels (https://www.pexels.com/photo/crowd-gathering-at-brandenburg-gate-event-36781764/) via ZipWP Images
+
+## Inner pages
+- hero-about.jpeg — "Three security guards in uniform standing by motorbikes outdoors in a tropical setting." by Malik Usman on Pexels (https://www.pexels.com/photo/security-team-on-motorbikes-in-tropical-setting-30516933/) via ZipWP Images
+- hero-why.jpeg — "Man in coat smiling as he opens a black car door for a woman wearing sunglasses." by Сергей Тарасов on Pexels (https://www.pexels.com/photo/man-opening-car-door-for-woman-15774577/) via ZipWP Images
+- hero-contact.jpeg — "Asian security guard using walkie talkie in an indoor setting, demonstrating communication and alertness." by Ron Lach on Pexels (https://www.pexels.com/photo/a-man-talking-on-a-walkie-talkie-8591606/) via ZipWP Images
+- hero-services.jpg — same photo as svc-event (see above)
+- why-panel.jpg — same photo as svc-guarding (see above)
