@@ -120,6 +120,8 @@ html:not(.js) .nav-toggle{display:none}
 .vhero.is-handoff .vhero-video{opacity:0}
 .vhero.is-gone .vhero-video{display:none}
 .vhero.is-rest .vhero-stage{transform:translate3d(0,var(--dy,0),0) scale(var(--k,1))}
+.js .vhero-last{transition:opacity 600ms ease}
+.vhero:has(.vhero-video[data-mode="p"]).is-rest .vhero-last{opacity:0}
 .vhero.is-rest .vhero-skip{visibility:hidden;opacity:0}
 .vhero.is-text .vhero-cta-in{opacity:1;transform:none;pointer-events:auto}
 .vhero.is-text .vhero-shade{opacity:1}

@@ -70,8 +70,9 @@
 
   /* ---------- home hero: intro video, then hand off to the live logo + slogan ---------- */
   /* Constants come from assets/video/hero-meta-v6.json. Both clips are 9.0s; the logo is settled by 8.54s (frame 205).
-     bbox = logo height in the final frame; its centre is the frame centre. 'p' = 540x960 portrait, 'l' = 1280x720 landscape (and its 480p twin). */
-  var GEO = { p: { w: 540, h: 960, lh: 236 }, l: { w: 1280, h: 720, lh: 330 } };
+     bbox = logo height in the final frame; its centre is the frame centre. 'p' = 720x1280 phone clip (v7, Jay's Gemini mobile take; its end-card logo is big, so kmax shrinks it to the v6 mobile size after hand-off),
+     't' = 540x720 tablet crop panned across the v6 desktop clip, 'l' = 1280x720 landscape (and its 480p twin). */
+  var GEO = { p: { w: 720, h: 1280, lh: 584, kmax: 0.55 }, t: { w: 540, h: 720, lh: 330 }, l: { w: 1280, h: 720, lh: 330 } };
   var LOGO_RATIO = 1100 / 1085, SETTLED = 8.54, FADE_MS = 450, STALL_MS = 20000, KMIN = 0.55;
 
   var initHero = function (hero) {
@@ -80,7 +81,7 @@
     var logo = hero.querySelector('.vhero-logo');
     var inner = hero.querySelector('.vhero-cta-in');
     var skip = hero.querySelector('.vhero-skip');
-    var geo = vid.dataset.mode === 'p' ? GEO.p : GEO.l;
+    var geo = GEO[vid.dataset.mode] || GEO.l;
     var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
     var SAVE = !!(navigator.connection && navigator.connection.saveData);
     var state = 0;   /* 0 waiting/playing, 1 cross-fading, 2 end state */
@@ -99,7 +100,7 @@
       /* resting layout: the stage (last frame + logo) moves/shrinks as one so the frame's own logo never ghosts;
          the text block sits under it. Short screens: logo shrinks to KMIN, then the hero grows instead. */
       var gap = 14, pad = 16, th = inner.offsetHeight;
-      var k = clamp((H - 2 * pad - gap - th) / lh, KMIN, 1);
+      var k = clamp((H - 2 * pad - gap - th) / lh, KMIN, geo.kmax || 1);
       var total = lh * k + gap + th;
       var top = Math.max(pad, (H - total) / 2);
       hero.style.minHeight = top + total + pad > H ? (top + total + pad).toFixed(0) + 'px' : '';
