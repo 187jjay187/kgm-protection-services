@@ -216,20 +216,6 @@
   var hero = document.querySelector('.vhero');
   if (hero) { initHero(hero); }
 
-  /* ---------- section videos: play when >=50% visible, pause when off (reduced motion: posters only) ---------- */
-  var ioVids = document.querySelectorAll('.io-video');
-  if (ioVids.length && !matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
-    var vio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        var v = en.target;
-        if (en.isIntersecting && en.intersectionRatio >= 0.5) {
-          var pr = v.play(); if (pr && pr.catch) { pr.catch(function () {}); }
-        } else { v.pause(); }
-      });
-    }, { threshold: [0, 0.5] });
-    Array.prototype.forEach.call(ioVids, function (v) { vio.observe(v); });
-  }
-
   /* ---------- gallery lightbox ---------- */
   var lb = document.querySelector('.lb');
   var tiles = Array.prototype.slice.call(document.querySelectorAll('.g-tile'));
