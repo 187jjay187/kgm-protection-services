@@ -1,7 +1,7 @@
 /* KGM Protection Services - vanilla JS, no dependencies */
 (function () {
   'use strict';
-  var WA_NUMBER = '27812146237';
+  var WA_NUMBER = '27738670290';
   var EMAIL = 'Info@kgmprotection.co.za';
   var SERVICES = {
     'vip-protection': 'VIP Protection & Escorting',
